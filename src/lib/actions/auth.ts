@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 
 import { appUrl } from "@/lib/app-url";
+import { clearEmailChanges, findEmailChange } from "@/lib/auth/email-change";
 import {
   clearLoginAttempts,
   loginRetryAfter,
@@ -17,11 +18,17 @@ import {
   findPasswordReset,
 } from "@/lib/auth/password-reset";
 import { RESET_TTL_MINUTES, resetPath } from "@/lib/auth/reset-link";
-import { createSession, deleteAllSessions, destroySession } from "@/lib/auth/session";
+import {
+  createSession,
+  deleteAllSessions,
+  destroySession,
+  getCurrentUser,
+} from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { fieldErrorsFrom, type FormState } from "@/lib/actions/form-state";
 import { passwordResetMail, sendMail } from "@/lib/mail";
 import {
+  confirmEmailSchema,
   forgotPasswordSchema,
   loginSchema,
   registerSchema,
@@ -30,6 +37,8 @@ import {
 
 const WRONG_CREDENTIALS = "Неверная почта или пароль";
 const BROKEN_LINK = "Ссылка устарела или уже использована. Запросите новую.";
+const BROKEN_EMAIL_LINK =
+  "Ссылка устарела или уже использована. Начните смену почты заново в профиле.";
 const RESET_SENT =
   "Если аккаунт с такой почтой есть, письмо со ссылкой уже летит. Проверьте и папку со спамом.";
 
@@ -204,9 +213,59 @@ export async function resetPasswordAction(
   await clearPasswordResets(reset.userId);
   await deleteAllSessions(reset.userId);
 
+  // Начатая смена почты тоже отменяется. Пароль восстанавливают как раз тогда,
+  // когда аккаунт мог побывать в чужих руках, а заявка на смену адреса — это
+  // отложенный увод входа: подтвердить её из своего ящика можно и назавтра.
+  await clearEmailChanges(reset.userId);
+
   // Пауза за неудачные входы тоже снимается: как раз с перебора чужого пароля
   // она и могла начаться, а хозяин аккаунта, дошедший до письма, ждать не должен.
   await clearLoginAttempts(user.email);
 
   redirect("/login?reset=1");
+}
+
+/**
+ * Подтверждение нового адреса почты.
+ *
+ * Сессия здесь не нужна: ссылку открывают в том ящике, куда переезжает вход, а
+ * это может быть другой браузер или телефон. Право на смену уже подтверждено
+ * дважды — паролем в профиле и доставкой письма.
+ */
+export async function confirmEmailChangeAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const parsed = confirmEmailSchema.safeParse({ token: formData.get("token") });
+  if (!parsed.success) return { error: BROKEN_EMAIL_LINK };
+
+  const request = await findEmailChange(parsed.data.token);
+  if (!request) return { error: BROKEN_EMAIL_LINK };
+
+  try {
+    await prisma.user.update({
+      where: { id: request.userId },
+      data: { email: request.newEmail },
+    });
+  } catch (error) {
+    // Пока письмо ждало в ящике, адрес мог занять кто-то другой: проверка при
+    // заказе письма ничего не обещает, обещает только уникальный индекс.
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      await clearEmailChanges(request.userId);
+      return { error: "Этот адрес уже занят другим аккаунтом. Выберите другой в профиле." };
+    }
+    throw error;
+  }
+
+  await clearEmailChanges(request.userId);
+
+  // Пауза за неудачные входы на новом адресе снимается: теперь это ключ от
+  // аккаунта, и чужие промахи по нему не должны запирать хозяина.
+  await clearLoginAttempts(request.newEmail);
+
+  // Сессии не трогаем: адрес сменился, а устройства остались те же. Тому, кто
+  // подтверждал из чужого браузера, показываем вход — под старым адресом он
+  // всё равно уже не работает.
+  const current = await getCurrentUser();
+  redirect(current?.id === request.userId ? "/profile?email=1" : "/login?email=1");
 }

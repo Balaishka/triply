@@ -6,6 +6,7 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, FormError, FormSuccess, Input } from "@/components/ui/field";
 import {
+  confirmEmailChangeAction,
   loginAction,
   registerAction,
   requestPasswordResetAction,
@@ -152,6 +153,41 @@ export function ResetPasswordForm({ token }: { token: string }) {
       <Button type="submit" size="lg" disabled={pending}>
         {pending ? "Сохраняем…" : "Сохранить пароль"}
       </Button>
+    </form>
+  );
+}
+
+/**
+ * Подтверждение нового адреса.
+ *
+ * Адрес меняет кнопка, а не открытие страницы: по ссылкам в письмах ходят
+ * почтовые клиенты и антивирусы, и смена, привязанная к самому переходу,
+ * случалась бы без человека.
+ */
+export function ConfirmEmailForm({ token, email }: { token: string; email: string }) {
+  const [state, action, pending] = useActionState(confirmEmailChangeAction, null);
+
+  return (
+    <form action={action} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5">
+      <FormError>{state?.error}</FormError>
+
+      <input type="hidden" name="token" value={token} />
+
+      <p className="text-sm text-muted-foreground">
+        Подтвердите, что дальше вход в Triply будет по адресу
+      </p>
+      <p className="font-semibold break-all">{email}</p>
+
+      <Button type="submit" size="lg" disabled={pending}>
+        {pending ? "Подтверждаем…" : "Подтвердить адрес"}
+      </Button>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Не меняли почту?{" "}
+        <Link href="/profile" className="font-semibold text-primary underline underline-offset-2">
+          Отмените смену в профиле
+        </Link>
+      </p>
     </form>
   );
 }

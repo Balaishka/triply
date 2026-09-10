@@ -8,14 +8,19 @@ import {
 } from "@/components/profile/profile-forms";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/lib/actions/auth";
+import { pendingEmailChange } from "@/lib/auth/email-change";
 import { requireUser } from "@/lib/auth/require-user";
 import { toISODate } from "@/lib/dates";
 import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = { title: "Профиль — Triply" };
 
-export default async function ProfilePage() {
+export default async function ProfilePage({ searchParams }: PageProps<"/profile">) {
   const user = await requireUser();
+
+  // Сюда приводит подтверждённая ссылка из письма, когда её открыли в том же
+  // браузере, где приложение уже открыто.
+  const { email: confirmed } = await searchParams;
 
   const profile = await prisma.user.findUnique({
     where: { id: user.id },
@@ -44,7 +49,11 @@ export default async function ProfilePage() {
       />
 
       <section className="border-t border-border pt-5">
-        <EmailForm email={profile.email} />
+        <EmailForm
+          email={profile.email}
+          pendingEmail={await pendingEmailChange(user.id)}
+          notice={confirmed ? "Адрес подтверждён — теперь вход по нему." : undefined}
+        />
       </section>
 
       <section className="flex flex-col gap-3 border-t border-border pt-5">

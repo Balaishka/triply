@@ -19,6 +19,7 @@ model User {
 
   sessions          Session[]
   passwordResets    PasswordResetToken[]
+  emailChanges      EmailChangeRequest[]
   sentRequests      Friendship[] @relation("FriendshipRequester")
   receivedRequests  Friendship[] @relation("FriendshipAddressee")
   createdTrips      Trip[]       @relation("TripCreator")
@@ -51,6 +52,24 @@ model PasswordResetToken {
   tokenHash String   @unique
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+/// Заявка на смену адреса почты.
+///
+/// Новый адрес ждёт здесь, пока по ссылке из письма его не подтвердят: до этого
+/// вход остаётся по старому, поэтому опечатка в адресе больше не стоит доступа.
+/// Как и у сессий, в базе лежит только хеш токена. Заявка у пользователя одна:
+/// новая отменяет предыдущую.
+model EmailChangeRequest {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newEmail  String
   expiresAt DateTime
   createdAt DateTime @default(now())
 

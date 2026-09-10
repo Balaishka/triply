@@ -50,6 +50,49 @@ export function passwordResetMail(params: {
   };
 }
 
+export function emailChangeMail(params: {
+  to: string;
+  nickname: string;
+  url: string;
+  ttlMinutes: number;
+}): Mail {
+  const { to, nickname, url, ttlMinutes } = params;
+  const life = `${ttlMinutes} ${plural(ttlMinutes, "минуту", "минуты", "минут")}`;
+
+  const text = [
+    `Здравствуйте, ${nickname}!`,
+    "",
+    "Этот адрес указан как новая почта для входа в Triply.",
+    "Подтвердите, что письмо дошло:",
+    "",
+    url,
+    "",
+    `Ссылка живёт ${life} и срабатывает один раз. Пока по ней не перешли,`,
+    "вход остаётся по прежнему адресу.",
+    "",
+    "Если почту вы не меняли, просто удалите это письмо: без перехода",
+    "по ссылке ничего не изменится.",
+    "",
+    "Triply — считайте закаты, а не чеки",
+  ].join("\n");
+
+  return {
+    to,
+    subject: "Подтверждение новой почты в Triply",
+    text,
+    html: layout(
+      [
+        `<p style="margin:0 0 16px">Здравствуйте, ${escapeHtml(nickname)}!</p>`,
+        `<p style="margin:0 0 24px">Этот адрес указан как новая почта для входа в Triply. Подтвердите, что письмо дошло.</p>`,
+        button(url, "Подтвердить адрес"),
+        `<p style="margin:24px 0 8px;color:#5f6b66;font-size:14px">Ссылка живёт ${life} и срабатывает один раз. Пока по ней не перешли, вход остаётся по прежнему адресу. Если кнопка не открывается, скопируйте адрес:</p>`,
+        `<p style="margin:0 0 24px;font-size:14px;word-break:break-all"><a href="${escapeHtml(url)}" style="color:#123c35">${escapeHtml(url)}</a></p>`,
+        `<p style="margin:0;color:#5f6b66;font-size:14px">Если почту вы не меняли, просто удалите это письмо: без перехода по ссылке ничего не изменится.</p>`,
+      ].join(""),
+    ),
+  };
+}
+
 /**
  * Обёртка письма.
  *

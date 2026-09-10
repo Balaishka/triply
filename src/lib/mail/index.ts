@@ -2,7 +2,7 @@ import { createTransport } from "@/lib/mail/transport";
 import type { Mail } from "@/lib/mail/types";
 
 export type { Mail } from "@/lib/mail/types";
-export { passwordResetMail } from "@/lib/mail/templates";
+export { emailChangeMail, passwordResetMail } from "@/lib/mail/templates";
 
 /**
  * Отправка письма.
