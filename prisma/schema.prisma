@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  nickname     String    @unique
+  avatarUrl    String?
+  birthDate    DateTime? @db.Date
+  phone        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  sessions          Session[]
+  sentRequests      Friendship[] @relation("FriendshipRequester")
+  receivedRequests  Friendship[] @relation("FriendshipAddressee")
+  createdTrips      Trip[]       @relation("TripCreator")
+  memberships       TripMember[] @relation("MemberUser")
+  addedMembers      TripMember[] @relation("MemberAddedBy")
+  createdExpenses   Expense[]    @relation("ExpenseCreator")
+  markedSettlements Settlement[] @relation("SettlementMarkedBy")
+}
+
+/// В базе лежит только хеш токена сессии: утечка дампа не даёт войти под чужим
+/// аккаунтом.
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+}
+
+/// Дружба взаимная. Уникальность пары в одну сторону обеспечивает индекс,
+/// отсутствие встречного дубля (B → A при существующем A → B) проверяется в коде.
+model Friendship {
+  id          String           @id @default(cuid())
+  requesterId String
+  addresseeId String
+  requester   User             @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee   User             @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  respondedAt DateTime?
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId])
+}
+
+enum TripStatus {
+  ACTIVE
+  COMPLETED
+}
+
+model Trip {
+  id          String     @id @default(cuid())
+  name        String
+  startDate   DateTime?  @db.Date
+  endDate     DateTime?  @db.Date
+  currency    String     @default("RUB")
+  status      TripStatus @default(ACTIVE)
+  createdById String
+  createdBy   User       @relation("TripCreator", fields: [createdById], references: [id])
+  createdAt   DateTime   @default(now())
+  completedAt DateTime?
+
+  members     TripMember[]
+  expenses    Expense[]
+  settlements Settlement[]
+}
+
+/// Участник поездки: либо зарегистрированный пользователь (`userId`), либо гость
+/// без аккаунта (`guestName`). Расходы ссылаются именно сюда, поэтому гость и
+/// пользователь для расчёта неразличимы, а привязка гостя к аккаунту — это
+/// простая установка `userId` без переноса данных.
+///
+/// Уникальность `[tripId, userId]` не мешает нескольким гостям: в Postgres
+/// NULL-значения считаются различными.
+model TripMember {
+  id        String   @id @default(cuid())
+  tripId    String
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation("MemberUser", fields: [userId], references: [id], onDelete: NoAction)
+  guestName String?
+  addedById String
+  addedBy   User     @relation("MemberAddedBy", fields: [addedById], references: [id], onDelete: NoAction)
+  createdAt DateTime @default(now())
+
+  paidExpenses    Expense[]      @relation("ExpensePayer")
+  shares          ExpenseShare[]
+  settlementsFrom Settlement[]   @relation("SettlementFrom")
+  settlementsTo   Settlement[]   @relation("SettlementTo")
+
+  @@unique([tripId, userId])
+  @@index([tripId])
+}
+
+enum SplitMode {
+  EQUAL
+  MANUAL
+}
+
+model Expense {
+  id             String     @id @default(cuid())
+  tripId         String
+  trip           Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  title          String
+  amountMinor    Int
+  paidByMemberId String
+  paidBy         TripMember @relation("ExpensePayer", fields: [paidByMemberId], references: [id], onDelete: NoAction)
+  spentAt        DateTime   @db.Date
+  splitMode      SplitMode  @default(EQUAL)
+  createdById    String
+  createdBy      User       @relation("ExpenseCreator", fields: [createdById], references: [id], onDelete: NoAction)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  shares ExpenseShare[]
+
+  @@index([tripId, spentAt])
+}
+
+/// Доли хранятся конкретными суммами даже при делении поровну: реестр долей —
+/// источник правды, и смена логики округления не «сдвинет» старые расходы.
+model ExpenseShare {
+  id          String     @id @default(cuid())
+  expenseId   String
+  expense     Expense    @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  memberId    String
+  member      TripMember @relation(fields: [memberId], references: [id], onDelete: NoAction)
+  amountMinor Int
+
+  @@unique([expenseId, memberId])
+  @@index([memberId])
+}
+
+/// Отметка «я перевёл»: уменьшает остаток долга при расчёте.
+model Settlement {
+  id           String     @id @default(cuid())
+  tripId       String
+  trip         Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  fromMemberId String
+  fromMember   TripMember @relation("SettlementFrom", fields: [fromMemberId], references: [id], onDelete: NoAction)
+  toMemberId   String
+  toMember     TripMember @relation("SettlementTo", fields: [toMemberId], references: [id], onDelete: NoAction)
+  amountMinor  Int
+  markedById   String
+  markedBy     User       @relation("SettlementMarkedBy", fields: [markedById], references: [id], onDelete: NoAction)
+  createdAt    DateTime   @default(now())
+
+  @@index([tripId])
+}

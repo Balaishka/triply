@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: triply-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: triply
+      POSTGRES_PASSWORD: triply
+      POSTGRES_DB: triply
+    # 5433 снаружи, чтобы не спорить с локально установленным Postgres на 5432
+    ports:
+      - "5433:5432"
+    volumes:
+      - triply-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U triply -d triply"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  triply-db-data:

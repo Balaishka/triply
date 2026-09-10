@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/**
+ * Палитра Triply: хвойный лес и закатное солнце на тёплой бумаге.
+ *
+ * Имена переменных совпадают с соглашением shadcn/ui, поэтому любой компонент
+ * оттуда встаёт в наши цвета без правок.
+ */
+:root {
+  --background: #f7f4ec;
+  --foreground: #17201e;
+
+  /* Карточки белые: на кремовом фоне это даёт мягкий подъём без теней и рамок. */
+  --card: #ffffff;
+  --card-foreground: #17201e;
+  --popover: #ffffff;
+  --popover-foreground: #17201e;
+
+  --primary: #123c35;
+  --primary-foreground: #f7f4ec;
+
+  --secondary: #a8c4b5;
+  --secondary-foreground: #17201e;
+
+  --muted: #efeadd;
+  --muted-foreground: #5f6b66;
+
+  --accent: #ff6b35;
+  --accent-foreground: #ffffff;
+
+  --destructive: #b23c2a;
+  --destructive-foreground: #ffffff;
+
+  --border: #ddd6c6;
+  --input: #ddd6c6;
+  --ring: #123c35;
+
+  /*
+   * Деньги. Оранжевый из акцента слишком светлый для текста на кремовом фоне,
+   * поэтому для сумм берём затемнённые версии — они проходят по контрасту.
+   */
+  --owed: #1f6b57;
+  --owe: #b8431a;
+
+  --radius: 0.75rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-owed: var(--owed);
+  --color-owe: var(--owe);
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+
+  /* Суммы читаются как таблица, когда цифры одной ширины. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}

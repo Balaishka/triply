@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(if \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\) { \"node_modules exists: \" + \\(Get-ChildItem D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\).Count + \" entries\" } else { \"node_modules not yet created\" })",
+      "PowerShell(docker compose up -d 2>&1)",
+      "PowerShell($p = \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe\"; if \\(Test-Path $p\\) { \"found: $p\" } else { \"not at default path\" }; Get-Process \"Docker Desktop\" -ErrorAction SilentlyContinue | Select-Object -First 1 Name, Id)",
+      "PowerShell(\\(Get-Command docker\\).Source; Get-ChildItem \"C:\\\\Program Files\\\\Docker\" -ErrorAction SilentlyContinue | Select-Object Name; Get-ChildItem \"$env:LOCALAPPDATA\\\\Docker\" -ErrorAction SilentlyContinue | Select-Object -First 5 Name)",
+      "PowerShell(Start-Process \"$env:LOCALAPPDATA\\\\Programs\\\\DockerDesktop\\\\Docker Desktop.exe\"; \"launched\")",
+      "PowerShell(docker info --format '{{.ServerVersion}}' 2>&1)",
+      "PowerShell(docker compose ps 2>&1)",
+      "PowerShell(npm install -D prisma vitest)",
+      "PowerShell($p = \"D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\@prisma\\\\client\"; if \\(Test-Path $p\\) { \\(Get-Content \"$p\\\\package.json\" | ConvertFrom-Json\\).version; \"--- files ---\"; Get-ChildItem $p | Select-Object -First 20 Name } else { \"@prisma/client not present\" })",
+      "PowerShell(\"server-only: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\server-only\\); \"prisma: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\prisma\\); \"vitest: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\vitest\\))",
+      "PowerShell(\"prisma: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\prisma\\) + \" | vitest: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\vitest\\); Get-Content C:\\\\Users\\\\Balai\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--Balai-dev-triply\\\\bddf361c-297b-4454-99fd-9d9834253d40\\\\tasks\\\\bshufktq3.output -Tail 4)",
+      "PowerShell(Get-Process node,npm -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, StartTime, CPU | Format-Table -AutoSize; \"--- output file size ---\"; \\(Get-Item C:\\\\Users\\\\Balai\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--Balai-dev-triply\\\\bddf361c-297b-4454-99fd-9d9834253d40\\\\tasks\\\\bshufktq3.output\\).Length)",
+      "PowerShell(\"prisma: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\prisma\\) + \" | vitest: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\vitest\\); Get-Process node -ErrorAction SilentlyContinue | Select-Object Id, CPU | Format-Table -AutoSize)",
+      "PowerShell($t = Measure-Command { try { Invoke-WebRequest -Uri \"https://registry.npmjs.org/vitest\" -UseBasicParsing -TimeoutSec 20 -Method Head | Out-Null; $script:ok = \"ok\" } catch { $script:ok = \"fail: \" + $_.Exception.Message } }; \"$ok in $\\($t.TotalSeconds\\)s\"; try { \\(Invoke-WebRequest -Uri \"https://binaries.prisma.sh\" -UseBasicParsing -TimeoutSec 20 -Method Head\\).StatusCode } catch { \"prisma binaries: \" + $_.Exception.Message })",
+      "PowerShell(\"prisma: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\prisma\\) + \" | vitest: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\vitest\\); \\(Get-Item C:\\\\Users\\\\Balai\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--Balai-dev-triply\\\\bddf361c-297b-4454-99fd-9d9834253d40\\\\tasks\\\\bshufktq3.output\\).Length)",
+      "PowerShell(Get-NetTCPConnection -OwningProcess 24180 -ErrorAction SilentlyContinue | Select-Object State, RemoteAddress, RemotePort | Format-Table -AutoSize; \"--- io ---\"; $p = Get-Process -Id 24180; \"ReadBytes: \" + $p.ReadOperationCount + \" | WS\\(MB\\): \" + [math]::Round\\($p.WorkingSet64/1MB,1\\))",
+      "PowerShell(\"prisma: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\prisma\\) + \" | vitest: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\vitest\\); Get-Process node -ErrorAction SilentlyContinue | Select-Object Id,CPU | Format-Table -AutoSize)",
+      "PowerShell(\"prisma: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\prisma\\) + \" | vitest: \" + \\(Test-Path D:\\\\Balai\\\\dev\\\\triply\\\\node_modules\\\\vitest\\))",
+      "PowerShell($c = \"$env:LOCALAPPDATA\\\\npm-cache\\\\_cacache\\\\content-v2\"; if \\(Test-Path $c\\) { $s1 = \\(Get-ChildItem $c -Recurse -File | Measure-Object -Property Length -Sum\\).Sum; \"size1: \" + [math]::Round\\($s1/1MB,1\\) + \" MB\" } else { \"no cache dir\" })",
+      "PowerShell($c = \"$env:LOCALAPPDATA\\\\npm-cache\\\\_cacache\\\\content-v2\"; $s2 = \\(Get-ChildItem $c -Recurse -File | Measure-Object -Property Length -Sum\\).Sum; \"size2: \" + [math]::Round\\($s2/1MB,1\\) + \" MB\")"
+    ]
+  }
+}
