@@ -4,6 +4,7 @@ import { useActionState, useMemo, useState } from "react";
 
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { DateInput } from "@/components/ui/date-input";
 import { Field, FormError, Input, Label, Select } from "@/components/ui/field";
 import type { FormState } from "@/lib/actions/form-state";
 import { todayISO } from "@/lib/dates";
@@ -147,14 +148,7 @@ export function ExpenseForm({
           />
         </Field>
         <Field label="Когда" htmlFor="spentAt" error={state?.fieldErrors?.spentAt}>
-          <Input
-            id="spentAt"
-            name="spentAt"
-            type="date"
-            value={spentAt}
-            onChange={(event) => setSpentAt(event.target.value)}
-            required
-          />
+          <DateInput id="spentAt" name="spentAt" value={spentAt} onChange={setSpentAt} required />
         </Field>
       </div>
 
@@ -196,7 +190,7 @@ export function ExpenseForm({
               <div
                 key={member.id}
                 className={
-                  "flex items-center gap-3 px-3 py-2.5" +
+                  "flex items-center gap-3 px-3 py-2" +
                   (index > 0 ? " border-t border-border" : "")
                 }
               >
@@ -217,19 +211,23 @@ export function ExpenseForm({
                   </span>
                 </label>
 
-                <Input
-                  aria-label={"Доля: " + member.name}
-                  inputMode="decimal"
-                  disabled={!isSelected}
-                  value={manual[member.id] ?? ""}
-                  placeholder={
-                    isSelected && computed !== undefined ? formatAmount(computed, currency) : "—"
-                  }
-                  onChange={(event) =>
-                    setManual((current) => ({ ...current, [member.id]: event.target.value }))
-                  }
-                  className="tabular h-9 w-28 shrink-0 px-2 text-right text-sm"
-                />
+                {/* Ширину задаёт обёртка: сам Input — на всю ширину родителя, и
+                    переопределить это классом на нём не получится. */}
+                <div className="w-28 shrink-0">
+                  <Input
+                    aria-label={"Доля: " + member.name}
+                    inputMode="decimal"
+                    disabled={!isSelected}
+                    value={manual[member.id] ?? ""}
+                    placeholder={
+                      isSelected && computed !== undefined ? formatAmount(computed, currency) : "—"
+                    }
+                    onChange={(event) =>
+                      setManual((current) => ({ ...current, [member.id]: event.target.value }))
+                    }
+                    className="tabular text-right"
+                  />
+                </div>
               </div>
             );
           })}

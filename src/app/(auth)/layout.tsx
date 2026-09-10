@@ -15,7 +15,7 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
           Triply
         </Link>
         <p className="mb-7 text-center text-sm text-muted-foreground">
-          Поездки с друзьями без подсчётов, кто кому сколько должен
+          Считайте закаты, а не чеки
         </p>
         {children}
       </div>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { ExpenseForm } from "@/components/expenses/expense-form";
@@ -14,7 +15,15 @@ export default async function NewExpensePage({ params }: PageProps<"/trips/[id]/
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-2xl font-extrabold tracking-tight">Новый расход</h1>
+      <div className="flex flex-col gap-1">
+        <Link
+          href={`/trips/${trip.id}`}
+          className="w-fit text-sm font-semibold text-muted-foreground hover:text-foreground"
+        >
+          ← {trip.name}
+        </Link>
+        <h1 className="text-2xl font-extrabold tracking-tight">Новый расход</h1>
+      </div>
       <ExpenseForm
         action={createExpenseAction.bind(null, trip.id)}
         members={trip.members}

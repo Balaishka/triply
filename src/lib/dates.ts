@@ -66,3 +66,95 @@ export function formatDateRange(start: Date | null, end: Date | null): string | 
 
   return `${formatDate(from)} – ${formatDate(to)}`;
 }
+
+/* ------------------------------------------------------------------ *
+ * Календарь: сетка месяца и навигация по ней.
+ *
+ * Всё считается в строках `2026-07-12`, а не в объектах `Date`: строки
+ * сравниваются лексикографически (это и есть сравнение дат), не тянут за
+ * собой часовой пояс и годятся как React-ключи без лишних преобразований.
+ * ------------------------------------------------------------------ */
+
+const MONTHS_NOMINATIVE = [
+  "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+  "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь",
+];
+
+/** Месяцы для сетки выбора года — в неё нужны короткие подписи. */
+export const MONTHS_SHORT = [
+  "янв", "фев", "мар", "апр", "май", "июн",
+  "июл", "авг", "сен", "окт", "ноя", "дек",
+];
+
+/** Шапка недели. Неделя начинается с понедельника — так принято здесь. */
+export const WEEKDAYS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
+/** `12.07.2026` — компактная дата для узкого поля, где месяц словом не влезает. */
+export function formatDateNumeric(date: Date): string {
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return `${day}.${month}.${date.getUTCFullYear()}`;
+}
+
+/** `Июль 2026` — заголовок месяца в календаре. */
+export function formatMonthTitle(monthISO: string): string {
+  const date = fromISODate(monthISO);
+  return `${MONTHS_NOMINATIVE[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+}
+
+/** `2026-07-12` → `2026-07-01`. */
+export function startOfMonthISO(iso: string): string {
+  return `${iso.slice(0, 7)}-01`;
+}
+
+/** Год и месяц (0–11) в виде `2026-07-01`. */
+export function monthISO(year: number, month: number): string {
+  return toISODate(new Date(Date.UTC(year, month, 1)));
+}
+
+export function yearOfISO(iso: string): number {
+  return Number(iso.slice(0, 4));
+}
+
+export function monthOfISO(iso: string): number {
+  return Number(iso.slice(5, 7)) - 1;
+}
+
+/** Порядковый номер дня недели, где понедельник — 0. */
+export function weekdayIndexISO(iso: string): number {
+  return (fromISODate(iso).getUTCDay() + 6) % 7;
+}
+
+export function addDaysISO(iso: string, days: number): string {
+  const date = fromISODate(iso);
+  date.setUTCDate(date.getUTCDate() + days);
+  return toISODate(date);
+}
+
+/**
+ * Сдвиг на месяцы с сохранением числа. 31 марта минус месяц — это 28 (или 29)
+ * февраля, а не 3 марта, как получилось бы при наивном `setUTCMonth`.
+ */
+export function addMonthsISO(iso: string, months: number): string {
+  const date = fromISODate(iso);
+  const target = date.getUTCMonth() + months;
+  const lastDay = new Date(Date.UTC(date.getUTCFullYear(), target + 1, 0)).getUTCDate();
+  return toISODate(
+    new Date(Date.UTC(date.getUTCFullYear(), target, Math.min(date.getUTCDate(), lastDay))),
+  );
+}
+
+/**
+ * Сетка месяца: шесть недель по семь дней, включая хвосты соседних месяцев.
+ *
+ * Недель всегда шесть, даже когда хватило бы пяти: иначе календарь менял бы
+ * высоту при перелистывании и кнопки под ним прыгали бы под пальцем.
+ */
+export function monthGridISO(anchorISO: string): string[][] {
+  const first = startOfMonthISO(anchorISO);
+  const start = addDaysISO(first, -weekdayIndexISO(first));
+
+  return Array.from({ length: 6 }, (_, week) =>
+    Array.from({ length: 7 }, (_, day) => addDaysISO(start, week * 7 + day)),
+  );
+}

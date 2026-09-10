@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { DeleteExpenseButton } from "@/components/expenses/delete-expense-button";
@@ -24,7 +25,15 @@ export default async function EditExpensePage({
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-2xl font-extrabold tracking-tight">Расход</h1>
+      <div className="flex flex-col gap-1">
+        <Link
+          href={`/trips/${trip.id}`}
+          className="w-fit text-sm font-semibold text-muted-foreground hover:text-foreground"
+        >
+          ← {trip.name}
+        </Link>
+        <h1 className="text-2xl font-extrabold tracking-tight">Расход</h1>
+      </div>
 
       <ExpenseForm
         action={updateExpenseAction.bind(null, trip.id, expense.id)}

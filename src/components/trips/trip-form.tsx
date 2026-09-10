@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { DateInput } from "@/components/ui/date-input";
 import { Field, FormError, Input, Select } from "@/components/ui/field";
 import type { FormState } from "@/lib/actions/form-state";
 import { CURRENCY_LIST, DEFAULT_CURRENCY } from "@/lib/money";
@@ -51,10 +52,10 @@ export function TripForm({
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Начало" htmlFor="startDate" error={state?.fieldErrors?.startDate}>
-          <Input id="startDate" name="startDate" type="date" defaultValue={initial.startDate} />
+          <DateInput id="startDate" name="startDate" defaultValue={initial.startDate} />
         </Field>
         <Field label="Конец" htmlFor="endDate" error={state?.fieldErrors?.endDate}>
-          <Input id="endDate" name="endDate" type="date" defaultValue={initial.endDate} />
+          <DateInput id="endDate" name="endDate" defaultValue={initial.endDate} />
         </Field>
       </div>
 

@@ -10,7 +10,7 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   title: "Triply",
-  description: "Поездки с друзьями без бесконечных расчётов, кто кому сколько должен",
+  description: "Общие расходы в поездке с друзьями: записывайте траты, а Triply посчитает, кто кому сколько переводит",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

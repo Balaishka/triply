@@ -2,7 +2,8 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react
 
 import { cn } from "@/lib/cn";
 
-const CONTROL = cn(
+/** Общий вид поля ввода: им же одевается кнопка календаря, чтобы поля совпадали. */
+export const CONTROL = cn(
   "h-11 w-full rounded-lg border border-input bg-card px-3",
   // 16px — ниже этого размера Safari на айфоне зумит страницу при фокусе.
   "text-base text-foreground placeholder:text-muted-foreground",

@@ -4,6 +4,7 @@ import { useActionState, useRef, useState, useTransition } from "react";
 
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { DateInput } from "@/components/ui/date-input";
 import { Field, FormError, Input } from "@/components/ui/field";
 import {
   changeEmailAction,
@@ -12,6 +13,7 @@ import {
   updateProfileAction,
   uploadAvatarAction,
 } from "@/lib/actions/profile";
+import { todayISO } from "@/lib/dates";
 
 function Success({ children }: { children?: string }) {
   if (!children) return null;
@@ -87,7 +89,15 @@ export function ProfileForm({
       </Field>
 
       <Field label="Дата рождения" htmlFor="birthDate" error={state?.fieldErrors?.birthDate}>
-        <Input id="birthDate" name="birthDate" type="date" defaultValue={initial.birthDate} />
+        {/* Родиться в будущем нельзя, а нижняя граница просто держит выбор года
+            в разумных пределах. */}
+        <DateInput
+          id="birthDate"
+          name="birthDate"
+          defaultValue={initial.birthDate}
+          min="1900-01-01"
+          max={todayISO()}
+        />
       </Field>
 
       <Field label="Телефон" htmlFor="phone" error={state?.fieldErrors?.phone}>
