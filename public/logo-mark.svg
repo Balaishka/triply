@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="200 100 400 370" width="400" height="370" role="img" aria-label="Triply">
+  <g stroke="#123c35" stroke-width="8" stroke-linecap="round">
+    <line x1="400" y1="150" x2="250" y2="420"/>
+    <line x1="400" y1="150" x2="550" y2="420"/>
+    <line x1="250" y1="420" x2="550" y2="420"/>
+  </g>
+  <circle cx="400" cy="150" r="50" fill="#ff6b35"/>
+  <circle cx="250" cy="420" r="50" fill="#a8c4b5"/>
+  <circle cx="550" cy="420" r="50" fill="#a8c4b5"/>
+</svg>

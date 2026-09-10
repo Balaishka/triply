@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Avatar } from "@/components/ui/avatar";
+import { Logo } from "@/components/ui/logo";
 import type { SessionUser } from "@/lib/auth/session";
 
 /**
@@ -22,8 +23,8 @@ export function AppShell({
     <div className="flex min-h-full flex-col">
       <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-4 py-3">
-          <Link href="/" className="text-lg font-extrabold tracking-tight text-primary">
-            Triply
+          <Link href="/" aria-label="Triply">
+            <Logo size="sm" />
           </Link>
 
           <nav className="hidden gap-1 sm:flex">

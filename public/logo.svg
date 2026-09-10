@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 370" width="1040" height="370" role="img" aria-label="Triply">
+  <!--
+    Горизонтальная версия: знак слева, название справа.
+    Ширина надписи задана через textLength — файл открывают и там, где Manrope
+    нет, и без этого запасной шрифт вылезал бы за viewBox.
+  -->
+  <g transform="translate(-200 -100)">
+    <g stroke="#123c35" stroke-width="8" stroke-linecap="round">
+      <line x1="400" y1="150" x2="250" y2="420"/>
+      <line x1="400" y1="150" x2="550" y2="420"/>
+      <line x1="250" y1="420" x2="550" y2="420"/>
+    </g>
+    <circle cx="400" cy="150" r="50" fill="#ff6b35"/>
+    <circle cx="250" cy="420" r="50" fill="#a8c4b5"/>
+    <circle cx="550" cy="420" r="50" fill="#a8c4b5"/>
+  </g>
+  <text x="460" y="257" textLength="560" lengthAdjust="spacingAndGlyphs"
+        font-family="Manrope, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="200" font-weight="800" fill="#123c35">Triply</text>
+</svg>
