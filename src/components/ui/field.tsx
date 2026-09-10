@@ -64,6 +64,16 @@ export function Field({
   );
 }
 
+/** Хорошая новость формы: сохранили, отправили, изменили. */
+export function FormSuccess({ children }: { children?: ReactNode }) {
+  if (!children) return null;
+  return (
+    <p className="rounded-lg bg-secondary/40 px-3 py-2 text-sm font-semibold text-foreground">
+      {children}
+    </p>
+  );
+}
+
 /** Общая ошибка формы — то, что не привязано к конкретному полю. */
 export function FormError({ children }: { children?: ReactNode }) {
   if (!children) return null;

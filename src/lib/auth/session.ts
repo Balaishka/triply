@@ -1,7 +1,7 @@
-import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { cache } from "react";
 
+import { hashToken, randomToken } from "@/lib/auth/token";
 import { prisma } from "@/lib/db";
 
 const COOKIE_NAME = "triply_session";
@@ -19,11 +19,9 @@ export interface SessionUser {
  *
  * В базу пишется только SHA-256 от токена: сам токен существует лишь в cookie
  * браузера, поэтому дамп таблицы сессий не позволяет войти под пользователем.
- * Токен случайный на 256 бит, так что хеш без соли здесь достаточен — перебирать
- * нечего.
  */
 export async function createSession(userId: string): Promise<void> {
-  const token = randomBytes(32).toString("base64url");
+  const token = randomToken();
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
 
   await prisma.session.create({
@@ -82,6 +80,16 @@ export async function deleteOtherSessions(userId: string): Promise<void> {
   });
 }
 
+/**
+ * Завершает все сессии пользователя.
+ *
+ * Нужна при восстановлении пароля: там нет текущей сессии, которую стоило бы
+ * пощадить, зато есть вероятность, что аккаунтом уже пользуется кто-то чужой.
+ */
+export async function deleteAllSessions(userId: string): Promise<void> {
+  await prisma.session.deleteMany({ where: { userId } });
+}
+
 /** Завершает текущую сессию: удаляет запись в базе и чистит cookie. */
 export async function destroySession(): Promise<void> {
   const store = await cookies();
@@ -91,8 +99,4 @@ export async function destroySession(): Promise<void> {
     await prisma.session.deleteMany({ where: { tokenHash: hashToken(token) } });
   }
   store.delete(COOKIE_NAME);
-}
-
-function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
 }

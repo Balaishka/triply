@@ -9,12 +9,16 @@
 
 ```bash
 cp .env.example .env      # значения по умолчанию уже рабочие
-docker compose up -d      # Postgres на localhost:5433
+docker compose up -d      # Postgres на localhost:5433 и почта на localhost:8025
 npm install
 npx prisma migrate dev    # схема и клиент
 npm run seed              # демо-данные (по желанию)
 npm run dev               # http://localhost:3000
 ```
+
+Письма приложение шлёт в Mailpit из `docker-compose.yml` — открыть ящик можно на
+http://localhost:8025. Если `MAIL_SMTP_HOST` не задан, письмо просто печатается в
+консоль сервера: восстановление пароля работает и без почтового сервера.
 
 После `npm run seed` можно войти как `anna@triply.test`, `boris@triply.test` или
 `vera@triply.test` — пароль у всех `password123`. В базе появится поездка на
@@ -39,7 +43,8 @@ npm run dev               # http://localhost:3000
   минимизация числа переводов. Чистые функции без БД и React, покрыты тестами.
 - `src/lib/money.ts` — деньги: суммы везде хранятся целыми минорными единицами
   (копейками), форматирование и разбор ввода собраны здесь.
+- `src/lib/mail/` — письма: сборка MIME и свой маленький SMTP-клиент.
 - `prisma/schema.prisma` — модель данных.
 - `src/app/` — маршруты и страницы.
 
-Подробности решений — в `CLAUDE.md`.
+Подробности решений — в `CLAUDE.md`, план развития — в `docs/roadmap.md`.

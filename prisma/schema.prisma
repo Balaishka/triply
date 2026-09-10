@@ -18,6 +18,7 @@ model User {
   updatedAt    DateTime  @updatedAt
 
   sessions          Session[]
+  passwordResets    PasswordResetToken[]
   sentRequests      Friendship[] @relation("FriendshipRequester")
   receivedRequests  Friendship[] @relation("FriendshipAddressee")
   createdTrips      Trip[]       @relation("TripCreator")
@@ -30,6 +31,22 @@ model User {
 /// В базе лежит только хеш токена сессии: утечка дампа не даёт войти под чужим
 /// аккаунтом.
 model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+/// Заявка на восстановление пароля.
+///
+/// Как и у сессий, в базе лежит только хеш токена: из дампа нельзя собрать
+/// рабочую ссылку. Заявка одноразовая — после смены пароля все заявки
+/// пользователя удаляются.
+model PasswordResetToken {
   id        String   @id @default(cuid())
   tokenHash String   @unique
   userId    String

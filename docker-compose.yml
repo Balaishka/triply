@@ -18,5 +18,16 @@ services:
       timeout: 5s
       retries: 10
 
+  # Почтовый ящик для разработки: принимает письма приложения и показывает их
+  # в браузере. Наружу ничего не уходит — ровно то, что нужно, чтобы пройти
+  # восстановление пароля, не рискуя написать живому человеку.
+  mail:
+    image: axllent/mailpit:latest
+    container_name: triply-mail
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP для приложения
+      - "8025:8025"  # веб-ящик: http://localhost:8025
+
 volumes:
   triply-db-data:

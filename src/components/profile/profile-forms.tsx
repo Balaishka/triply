@@ -5,7 +5,7 @@ import { useActionState, useRef, useState, useTransition } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DateInput } from "@/components/ui/date-input";
-import { Field, FormError, Input } from "@/components/ui/field";
+import { Field, FormError, FormSuccess, Input } from "@/components/ui/field";
 import {
   changeEmailAction,
   changePasswordAction,
@@ -14,15 +14,6 @@ import {
   uploadAvatarAction,
 } from "@/lib/actions/profile";
 import { todayISO } from "@/lib/dates";
-
-function Success({ children }: { children?: string }) {
-  if (!children) return null;
-  return (
-    <p className="rounded-lg bg-secondary/40 px-3 py-2 text-sm font-semibold text-foreground">
-      {children}
-    </p>
-  );
-}
 
 export function AvatarForm({
   nickname,
@@ -82,7 +73,7 @@ export function ProfileForm({
   return (
     <form action={action} className="flex flex-col gap-4">
       <FormError>{state?.error}</FormError>
-      <Success>{state?.success}</Success>
+      <FormSuccess>{state?.success}</FormSuccess>
 
       <Field label="Никнейм" htmlFor="nickname" error={state?.fieldErrors?.nickname}>
         <Input id="nickname" name="nickname" defaultValue={initial.nickname} required />
@@ -142,7 +133,7 @@ export function EmailForm({ email }: { email: string }) {
   return (
     <form action={action} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
       <FormError>{state?.error}</FormError>
-      <Success>{state?.success}</Success>
+      <FormSuccess>{state?.success}</FormSuccess>
 
       <Field
         label="Новая почта"
@@ -194,7 +185,7 @@ export function PasswordForm() {
   return (
     <form action={action} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
       <FormError>{state?.error}</FormError>
-      <Success>{state?.success}</Success>
+      <FormSuccess>{state?.success}</FormSuccess>
 
       <Field
         label="Текущий пароль"

@@ -3,11 +3,28 @@
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 
+import { appUrl } from "@/lib/app-url";
 import { hashPassword, verifyAgainstDecoy, verifyPassword } from "@/lib/auth/password";
-import { createSession, destroySession } from "@/lib/auth/session";
+import {
+  clearPasswordResets,
+  createPasswordReset,
+  findPasswordReset,
+} from "@/lib/auth/password-reset";
+import { RESET_TTL_MINUTES, resetPath } from "@/lib/auth/reset-link";
+import { createSession, deleteAllSessions, destroySession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { fieldErrorsFrom, type FormState } from "@/lib/actions/form-state";
-import { loginSchema, registerSchema } from "@/lib/validation";
+import { passwordResetMail, sendMail } from "@/lib/mail";
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  registerSchema,
+  resetPasswordSchema,
+} from "@/lib/validation";
+
+const BROKEN_LINK = "Ссылка устарела или уже использована. Запросите новую.";
+const RESET_SENT =
+  "Если аккаунт с такой почтой есть, письмо со ссылкой уже летит. Проверьте и папку со спамом.";
 
 export async function registerAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const parsed = registerSchema.safeParse({
@@ -78,4 +95,83 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
 export async function logoutAction(): Promise<void> {
   await destroySession();
   redirect("/login");
+}
+
+/**
+ * Заявка на восстановление пароля.
+ *
+ * Ответ одинаков и когда письмо ушло, и когда такой почты нет: иначе форма
+ * восстановления становится способом проверить, зарегистрирован ли человек —
+ * ровно то, от чего защищён вход.
+ */
+export async function requestPasswordResetAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const parsed = forgotPasswordSchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success) return fieldErrorsFrom(parsed.error);
+
+  const user = await prisma.user.findUnique({
+    where: { email: parsed.data.email },
+    select: { id: true, email: true, nickname: true },
+  });
+
+  if (user) {
+    // `null` — письмо этому адресу уже уходило минуту назад. Второе не шлём, но
+    // и виду не подаём: снаружи это неотличимо от обычной отправки.
+    const token = await createPasswordReset(user.id);
+
+    if (token) {
+      try {
+        await sendMail(
+          passwordResetMail({
+            to: user.email,
+            nickname: user.nickname,
+            url: appUrl(resetPath(token)),
+            ttlMinutes: RESET_TTL_MINUTES,
+          }),
+        );
+      } catch (error) {
+        // Поломка почты — забота хозяина сервера, а не повод показать в форме,
+        // что аккаунт с таким адресом существует.
+        console.error("Не удалось отправить письмо восстановления", error);
+      }
+    }
+  }
+
+  return { success: RESET_SENT };
+}
+
+/** Новый пароль по ссылке из письма. */
+export async function resetPasswordAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const parsed = resetPasswordSchema.safeParse({
+    token: formData.get("token"),
+    password: formData.get("password"),
+  });
+
+  if (!parsed.success) {
+    const errors = fieldErrorsFrom(parsed.error);
+    // Про токен пользователю сказать нечего — поля с ним на экране нет.
+    if (errors?.fieldErrors?.token) return { error: BROKEN_LINK };
+    return errors;
+  }
+
+  const reset = await findPasswordReset(parsed.data.token);
+  if (!reset) return { error: BROKEN_LINK };
+
+  await prisma.user.update({
+    where: { id: reset.userId },
+    data: { passwordHash: await hashPassword(parsed.data.password) },
+  });
+
+  // Обе зачистки обязательны: остальные ссылки восстановления перестают
+  // работать, а все сессии закрываются — если аккаунтом уже пользовался кто-то
+  // чужой, смена пароля должна его выставить.
+  await clearPasswordResets(reset.userId);
+  await deleteAllSessions(reset.userId);
+
+  redirect("/login?reset=1");
 }

@@ -33,6 +33,19 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Введите пароль"),
 });
 
+/**
+ * Восстановление пароля.
+ *
+ * Ответ формы одинаков при любом адресе, поэтому проверять здесь нечего, кроме
+ * самого вида адреса.
+ */
+export const forgotPasswordSchema = z.object({ email });
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Ссылка неполная — откройте её из письма целиком"),
+  password,
+});
+
 export const profileSchema = z.object({
   nickname,
   birthDate: z.iso.date().optional().or(z.literal("")),
