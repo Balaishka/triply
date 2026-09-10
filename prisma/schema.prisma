@@ -57,6 +57,20 @@ model PasswordResetToken {
   @@index([userId])
 }
 
+/// Счётчик неудачных входов по адресу почты.
+///
+/// Строка заводится и для адресов, на которых аккаунта нет: по тому, включилась
+/// ли пауза, не должно быть видно, зарегистрирован ли такой адрес. Успешный вход
+/// и смена пароля строку удаляют.
+model LoginAttempt {
+  email        String    @id
+  failures     Int
+  lastFailedAt DateTime
+  lockedUntil  DateTime?
+
+  @@index([lastFailedAt])
+}
+
 enum FriendshipStatus {
   PENDING
   ACCEPTED

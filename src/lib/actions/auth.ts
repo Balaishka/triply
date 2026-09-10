@@ -4,6 +4,12 @@ import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 
 import { appUrl } from "@/lib/app-url";
+import {
+  clearLoginAttempts,
+  loginRetryAfter,
+  registerFailedLogin,
+} from "@/lib/auth/login-attempts";
+import { formatRetryAfter } from "@/lib/auth/login-throttle";
 import { hashPassword, verifyAgainstDecoy, verifyPassword } from "@/lib/auth/password";
 import {
   clearPasswordResets,
@@ -22,9 +28,24 @@ import {
   resetPasswordSchema,
 } from "@/lib/validation";
 
+const WRONG_CREDENTIALS = "Неверная почта или пароль";
 const BROKEN_LINK = "Ссылка устарела или уже использована. Запросите новую.";
 const RESET_SENT =
   "Если аккаунт с такой почтой есть, письмо со ссылкой уже летит. Проверьте и папку со спамом.";
+
+const tooManyAttempts = (seconds: number) =>
+  `Слишком много попыток входа. Попробуйте через ${formatRetryAfter(seconds)}.`;
+
+/**
+ * Промах: копим его и, если попытки кончились, честно говорим, сколько ждать.
+ *
+ * Сообщение о паузе не выдаёт, есть ли такой аккаунт, — счёт ведётся по адресу
+ * независимо от того, зарегистрирован он или нет.
+ */
+async function failedLogin(email: string): Promise<FormState> {
+  const waiting = await registerFailedLogin(email);
+  return { error: waiting > 0 ? tooManyAttempts(waiting) : WRONG_CREDENTIALS };
+}
 
 export async function registerAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const parsed = registerSchema.safeParse({
@@ -70,8 +91,16 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
 
   if (!parsed.success) return fieldErrorsFrom(parsed.error);
 
+  const { email, password } = parsed.data;
+
+  // Пауза проверяется до пароля: смысл её в том, чтобы перебор упирался в
+  // ожидание, а не в argon2 — и чтобы попытка под паузой не стоила серверу
+  // ничего.
+  const waiting = await loginRetryAfter(email);
+  if (waiting > 0) return { error: tooManyAttempts(waiting) };
+
   const user = await prisma.user.findUnique({
-    where: { email: parsed.data.email },
+    where: { email },
     select: { id: true, passwordHash: true },
   });
 
@@ -80,14 +109,15 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
   // причине для несуществующей почты всё равно считаем хеш — чтобы ответ не
   // приходил заметно быстрее.
   if (!user) {
-    await verifyAgainstDecoy(parsed.data.password);
-    return { error: "Неверная почта или пароль" };
+    await verifyAgainstDecoy(password);
+    return failedLogin(email);
   }
 
-  if (!(await verifyPassword(user.passwordHash, parsed.data.password))) {
-    return { error: "Неверная почта или пароль" };
+  if (!(await verifyPassword(user.passwordHash, password))) {
+    return failedLogin(email);
   }
 
+  await clearLoginAttempts(email);
   await createSession(user.id);
   redirect("/");
 }
@@ -162,9 +192,10 @@ export async function resetPasswordAction(
   const reset = await findPasswordReset(parsed.data.token);
   if (!reset) return { error: BROKEN_LINK };
 
-  await prisma.user.update({
+  const user = await prisma.user.update({
     where: { id: reset.userId },
     data: { passwordHash: await hashPassword(parsed.data.password) },
+    select: { email: true },
   });
 
   // Обе зачистки обязательны: остальные ссылки восстановления перестают
@@ -172,6 +203,10 @@ export async function resetPasswordAction(
   // чужой, смена пароля должна его выставить.
   await clearPasswordResets(reset.userId);
   await deleteAllSessions(reset.userId);
+
+  // Пауза за неудачные входы тоже снимается: как раз с перебора чужого пароля
+  // она и могла начаться, а хозяин аккаунта, дошедший до письма, ждать не должен.
+  await clearLoginAttempts(user.email);
 
   redirect("/login?reset=1");
 }
