@@ -66,7 +66,7 @@ export default async function FriendsPage({ searchParams }: PageProps<"/friends"
                 <PersonRow
                   key={result.userId}
                   name={result.nickname}
-                  avatarUrl={result.avatarUrl}
+                  avatar={result.avatar}
                   withBorder={index > 0}
                   note={statusNote(result.status)}
                   action={
@@ -89,7 +89,7 @@ export default async function FriendsPage({ searchParams }: PageProps<"/friends"
               <PersonRow
                 key={request.friendshipId}
                 name={request.nickname}
-                avatarUrl={request.avatarUrl}
+                avatar={request.avatar}
                 withBorder={index > 0}
                 action={
                   <div className="flex items-center gap-1">
@@ -116,7 +116,7 @@ export default async function FriendsPage({ searchParams }: PageProps<"/friends"
               <PersonRow
                 key={request.friendshipId}
                 name={request.nickname}
-                avatarUrl={request.avatarUrl}
+                avatar={request.avatar}
                 withBorder={index > 0}
                 note="Ждём ответа"
                 action={
@@ -143,7 +143,7 @@ export default async function FriendsPage({ searchParams }: PageProps<"/friends"
               <PersonRow
                 key={friend.friendshipId}
                 name={friend.nickname}
-                avatarUrl={friend.avatarUrl}
+                avatar={friend.avatar}
                 withBorder={index > 0}
                 action={
                   <RemoveFriendshipButton friendshipId={friend.friendshipId} label="Удалить" />
@@ -159,13 +159,13 @@ export default async function FriendsPage({ searchParams }: PageProps<"/friends"
 
 function PersonRow({
   name,
-  avatarUrl,
+  avatar,
   note,
   action,
   withBorder,
 }: {
   name: string;
-  avatarUrl: string | null;
+  avatar: string | null;
   note?: string | null;
   action?: React.ReactNode;
   withBorder: boolean;
@@ -174,7 +174,7 @@ function PersonRow({
     <div
       className={"flex items-center gap-3 px-4 py-3" + (withBorder ? " border-t border-border" : "")}
     >
-      <Avatar name={name} src={avatarUrl} size="sm" />
+      <Avatar name={name} avatar={avatar} size="sm" />
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold">{name}</p>
         {note && <p className="text-sm text-muted-foreground">{note}</p>}

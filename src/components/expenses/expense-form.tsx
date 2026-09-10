@@ -205,7 +205,7 @@ export function ExpenseForm({
                   htmlFor={"member-" + member.id}
                   className="flex min-w-0 flex-1 items-center gap-2"
                 >
-                  <Avatar name={member.name} src={member.avatarUrl} size="sm" />
+                  <Avatar name={member.name} avatar={member.avatar} size="sm" />
                   <span className="truncate text-sm font-semibold">
                     {member.isMe ? "Вы" : member.name}
                   </span>

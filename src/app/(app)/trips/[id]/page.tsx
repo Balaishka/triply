@@ -55,7 +55,7 @@ export default async function TripPage({ params }: PageProps<"/trips/[id]">) {
         <div className="flex flex-wrap gap-3">
           {trip.members.map((member) => (
             <div key={member.id} className="flex items-center gap-2 rounded-full bg-muted py-1 pl-1 pr-3">
-              <Avatar name={member.name} src={member.avatarUrl} size="sm" />
+              <Avatar name={member.name} avatar={member.avatar} size="sm" />
               <span className="text-sm font-semibold">
                 {member.isMe ? "Вы" : member.name}
                 {member.isGuest && <span className="text-muted-foreground"> · гость</span>}
@@ -131,7 +131,7 @@ function ExpenseRow({
       href={`/trips/${trip.id}/expenses/${expense.id}`}
       className={`flex items-center gap-3 px-4 py-3 hover:bg-muted ${withBorder ? "border-t border-border" : ""}`}
     >
-      <Avatar name={payer?.name ?? "?"} src={payer?.avatarUrl} size="sm" />
+      <Avatar name={payer?.name ?? "?"} avatar={payer?.avatar} size="sm" />
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold">{expense.title}</p>
         <p className="text-sm text-muted-foreground">

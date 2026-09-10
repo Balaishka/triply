@@ -11,7 +11,7 @@ export interface TripMemberView {
   id: string;
   userId: string | null;
   name: string;
-  avatarUrl: string | null;
+  avatar: string | null;
   isGuest: boolean;
   isMe: boolean;
 }
@@ -66,7 +66,7 @@ const memberSelect = {
   id: true,
   userId: true,
   guestName: true,
-  user: { select: { nickname: true, avatarUrl: true } },
+  user: { select: { nickname: true, avatar: true } },
 } as const;
 
 /** Имя участника: ник аккаунта либо имя гостя. */
@@ -182,7 +182,7 @@ export async function getTripDetail(tripId: string, userId: string): Promise<Tri
       id: member.id,
       userId: member.userId,
       name: memberName(member),
-      avatarUrl: member.user?.avatarUrl ?? null,
+      avatar: member.user?.avatar ?? null,
       isGuest: member.userId === null,
       isMe: member.id === myMember.id,
     })),

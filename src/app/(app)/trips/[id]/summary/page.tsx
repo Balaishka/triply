@@ -51,7 +51,7 @@ export default async function TripSummaryPage({ params }: PageProps<"/trips/[id]
                   (index > 0 ? " border-t border-border" : "")
                 }
               >
-                <Avatar name={member?.name ?? "?"} src={member?.avatarUrl} size="sm" />
+                <Avatar name={member?.name ?? "?"} avatar={member?.avatar} size="sm" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">
                     {member?.isMe ? "Вы" : (member?.name ?? "—")}

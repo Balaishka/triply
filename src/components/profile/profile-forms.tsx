@@ -1,8 +1,7 @@
 "use client";
 
-import { useActionState, useRef, useState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 
-import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DateInput } from "@/components/ui/date-input";
 import { Field, FormError, FormSuccess, Input } from "@/components/ui/field";
@@ -10,59 +9,9 @@ import {
   cancelEmailChangeAction,
   changeEmailAction,
   changePasswordAction,
-  removeAvatarAction,
   updateProfileAction,
-  uploadAvatarAction,
 } from "@/lib/actions/profile";
 import { todayISO } from "@/lib/dates";
-
-export function AvatarForm({
-  nickname,
-  avatarUrl,
-}: {
-  nickname: string;
-  avatarUrl: string | null;
-}) {
-  const [state, action, pending] = useActionState(uploadAvatarAction, null);
-  const [removing, startRemoving] = useTransition();
-  const formRef = useRef<HTMLFormElement>(null);
-
-  return (
-    <section className="flex flex-col gap-3">
-      <div className="flex items-center gap-4">
-        <Avatar name={nickname} src={avatarUrl} size="lg" />
-        <div className="flex flex-col gap-2">
-          <form ref={formRef} action={action}>
-            <input
-              type="file"
-              name="avatar"
-              accept="image/jpeg,image/png,image/webp,image/avif"
-              // Отправляем сразу после выбора файла: отдельная кнопка «загрузить»
-              // здесь лишний шаг — выбор файла и есть подтверждение.
-              onChange={() => formRef.current?.requestSubmit()}
-              disabled={pending}
-              className="max-w-[15rem] text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-primary-foreground"
-            />
-          </form>
-
-          {avatarUrl && (
-            <button
-              type="button"
-              disabled={removing}
-              onClick={() => startRemoving(() => void removeAvatarAction())}
-              className="w-fit text-sm font-semibold text-muted-foreground underline underline-offset-2 hover:text-destructive"
-            >
-              {removing ? "Убираем…" : "Убрать аватарку"}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {pending && <p className="text-sm text-muted-foreground">Загружаем…</p>}
-      <FormError>{state?.error}</FormError>
-    </section>
-  );
-}
 
 export function ProfileForm({
   initial,

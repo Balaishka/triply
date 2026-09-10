@@ -4,10 +4,10 @@ export interface FriendSummary {
   friendshipId: string;
   userId: string;
   nickname: string;
-  avatarUrl: string | null;
+  avatar: string | null;
 }
 
-const userFields = { id: true, nickname: true, avatarUrl: true } as const;
+const userFields = { id: true, nickname: true, avatar: true } as const;
 
 /** Подтверждённые друзья пользователя — в обе стороны, кто бы ни был инициатором. */
 export async function getFriends(userId: string): Promise<FriendSummary[]> {
@@ -30,7 +30,7 @@ export async function getFriends(userId: string): Promise<FriendSummary[]> {
         friendshipId: id,
         userId: friend.id,
         nickname: friend.nickname,
-        avatarUrl: friend.avatarUrl,
+        avatar: friend.avatar,
       };
     })
     .sort((a, b) => a.nickname.localeCompare(b.nickname, "ru"));
@@ -54,7 +54,7 @@ export async function getIncomingRequests(userId: string): Promise<FriendSummary
     friendshipId: id,
     userId: requester.id,
     nickname: requester.nickname,
-    avatarUrl: requester.avatarUrl,
+    avatar: requester.avatar,
   }));
 }
 
@@ -70,7 +70,7 @@ export async function getOutgoingRequests(userId: string): Promise<FriendSummary
     friendshipId: id,
     userId: addressee.id,
     nickname: addressee.nickname,
-    avatarUrl: addressee.avatarUrl,
+    avatar: addressee.avatar,
   }));
 }
 
@@ -79,7 +79,7 @@ export type SearchResultStatus = "none" | "friends" | "incoming" | "outgoing";
 export interface SearchResult {
   userId: string;
   nickname: string;
-  avatarUrl: string | null;
+  avatar: string | null;
   status: SearchResultStatus;
 }
 
@@ -133,7 +133,7 @@ export async function searchUsers(query: string, currentUserId: string): Promise
   return users.map((user) => ({
     userId: user.id,
     nickname: user.nickname,
-    avatarUrl: user.avatarUrl,
+    avatar: user.avatar,
     status: statusByUser.get(user.id) ?? "none",
   }));
 }

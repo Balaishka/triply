@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 
 import { fieldErrorsFrom, type FormState } from "@/lib/actions/form-state";
 import { appUrl } from "@/lib/app-url";
+import { isAvatarId } from "@/lib/avatars";
 import { clearEmailChanges, createEmailChange } from "@/lib/auth/email-change";
 import { confirmEmailPath, EMAIL_CHANGE_TTL_MINUTES } from "@/lib/auth/email-change-link";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
@@ -13,7 +14,6 @@ import { deleteOtherSessions } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { fromISODate } from "@/lib/dates";
 import { emailChangeMail, sendMail } from "@/lib/mail";
-import { deleteAvatar, saveAvatar } from "@/lib/storage";
 import { changeEmailSchema, changePasswordSchema, profileSchema } from "@/lib/validation";
 
 export async function updateProfileAction(
@@ -53,43 +53,21 @@ export async function updateProfileAction(
   return { success: "Сохранено" };
 }
 
-export async function uploadAvatarAction(_prev: FormState, formData: FormData): Promise<FormState> {
+/**
+ * Выбор аватарки из набора.
+ *
+ * Загружать нечего: в базу уходит идентификатор картинки, а `null` возвращает
+ * инициалы. Неизвестный идентификатор — это подделанная форма, а не выбор
+ * человека, поэтому проверяем его здесь, а не полагаемся на список в разметке.
+ */
+export async function setAvatarAction(avatar: string | null): Promise<FormState> {
   const user = await requireUser();
 
-  const file = formData.get("avatar");
-  if (!(file instanceof File) || file.size === 0) {
-    return { error: "Выберите файл" };
+  if (avatar !== null && !isAvatarId(avatar)) {
+    return { error: "Такой картинки нет" };
   }
 
-  const result = await saveAvatar(user.id, file);
-  if (result.error) return { error: result.error };
-
-  const previous = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { avatarUrl: true },
-  });
-
-  await prisma.user.update({ where: { id: user.id }, data: { avatarUrl: result.url } });
-
-  // Старый файл убираем уже после успешной записи в базу: если бы удалили
-  // раньше и запись упала, пользователь остался бы вообще без аватарки.
-  await deleteAvatar(previous?.avatarUrl ?? null);
-
-  revalidatePath("/profile");
-  revalidatePath("/", "layout");
-  return null;
-}
-
-export async function removeAvatarAction(): Promise<FormState> {
-  const user = await requireUser();
-
-  const previous = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { avatarUrl: true },
-  });
-
-  await prisma.user.update({ where: { id: user.id }, data: { avatarUrl: null } });
-  await deleteAvatar(previous?.avatarUrl ?? null);
+  await prisma.user.update({ where: { id: user.id }, data: { avatar } });
 
   revalidatePath("/profile");
   revalidatePath("/", "layout");

@@ -11,7 +11,7 @@ model User {
   email        String    @unique
   passwordHash String
   nickname     String    @unique
-  avatarUrl    String?
+  avatar       String?
   birthDate    DateTime? @db.Date
   phone        String?
   createdAt    DateTime  @default(now())

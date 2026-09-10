@@ -42,7 +42,7 @@ export function MembersManager({
               "flex items-center gap-3 px-4 py-3" + (index > 0 ? " border-t border-border" : "")
             }
           >
-            <Avatar name={member.name} src={member.avatarUrl} size="sm" />
+            <Avatar name={member.name} avatar={member.avatar} size="sm" />
             <div className="min-w-0 flex-1">
               <p className="truncate font-semibold">{member.isMe ? "Вы" : member.name}</p>
               {member.isGuest && (
@@ -137,7 +137,7 @@ function AddFriends({
             }
             className="flex items-center gap-2 rounded-full border border-border bg-card py-1 pl-1 pr-3 text-sm font-semibold hover:bg-muted disabled:opacity-50"
           >
-            <Avatar name={friend.nickname} src={friend.avatarUrl} size="sm" />+ {friend.nickname}
+            <Avatar name={friend.nickname} avatar={friend.avatar} size="sm" />+ {friend.nickname}
           </button>
         ))}
       </div>

@@ -11,7 +11,7 @@ export interface SessionUser {
   id: string;
   email: string;
   nickname: string;
-  avatarUrl: string | null;
+  avatar: string | null;
 }
 
 /**
@@ -53,7 +53,7 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
     where: { tokenHash: hashToken(token) },
     select: {
       expiresAt: true,
-      user: { select: { id: true, email: true, nickname: true, avatarUrl: true } },
+      user: { select: { id: true, email: true, nickname: true, avatar: true } },
     },
   });
 

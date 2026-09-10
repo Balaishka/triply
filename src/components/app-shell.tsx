@@ -40,7 +40,7 @@ export function AppShell({
           </nav>
 
           <Link href="/profile" aria-label="Профиль">
-            <Avatar name={user.nickname} src={user.avatarUrl} size="sm" />
+            <Avatar name={user.nickname} avatar={user.avatar} size="sm" />
           </Link>
         </div>
       </header>

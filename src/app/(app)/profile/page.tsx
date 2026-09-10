@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 
-import {
-  AvatarForm,
-  EmailForm,
-  PasswordForm,
-  ProfileForm,
-} from "@/components/profile/profile-forms";
+import { AvatarPicker } from "@/components/profile/avatar-picker";
+import { EmailForm, PasswordForm, ProfileForm } from "@/components/profile/profile-forms";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/lib/actions/auth";
 import { pendingEmailChange } from "@/lib/auth/email-change";
@@ -24,7 +20,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
 
   const profile = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { nickname: true, email: true, birthDate: true, phone: true, avatarUrl: true },
+    select: { nickname: true, email: true, birthDate: true, phone: true, avatar: true },
   });
 
   if (!profile) {
@@ -38,7 +34,7 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-extrabold tracking-tight">Профиль</h1>
 
-      <AvatarForm nickname={profile.nickname} avatarUrl={profile.avatarUrl} />
+      <AvatarPicker nickname={profile.nickname} avatar={profile.avatar} />
 
       <ProfileForm
         initial={{
