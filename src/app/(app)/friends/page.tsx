@@ -36,6 +36,33 @@ export default async function FriendsPage({ searchParams }: PageProps<"/friends"
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-extrabold tracking-tight">Друзья</h1>
 
+      {incoming.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+            Заявки к вам
+          </h2>
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            {incoming.map((request, index) => (
+              <PersonRow
+                key={request.friendshipId}
+                name={request.nickname}
+                avatar={request.avatar}
+                withBorder={index > 0}
+                action={
+                  <div className="flex items-center gap-1">
+                    <AcceptRequestButton friendshipId={request.friendshipId} />
+                    <RemoveFriendshipButton
+                      friendshipId={request.friendshipId}
+                      label="Отклонить"
+                    />
+                  </div>
+                }
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Поиск через обычную форму: результат живёт в адресе, им можно поделиться
           и вернуться назад кнопкой браузера. */}
       <form method="get" className="flex gap-2">
@@ -79,33 +106,6 @@ export default async function FriendsPage({ searchParams }: PageProps<"/friends"
         </section>
       )}
 
-      {incoming.length > 0 && (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
-            Заявки к вам
-          </h2>
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
-            {incoming.map((request, index) => (
-              <PersonRow
-                key={request.friendshipId}
-                name={request.nickname}
-                avatar={request.avatar}
-                withBorder={index > 0}
-                action={
-                  <div className="flex items-center gap-1">
-                    <AcceptRequestButton friendshipId={request.friendshipId} />
-                    <RemoveFriendshipButton
-                      friendshipId={request.friendshipId}
-                      label="Отклонить"
-                    />
-                  </div>
-                }
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
       {outgoing.length > 0 && (
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
@@ -146,7 +146,11 @@ export default async function FriendsPage({ searchParams }: PageProps<"/friends"
                 avatar={friend.avatar}
                 withBorder={index > 0}
                 action={
-                  <RemoveFriendshipButton friendshipId={friend.friendshipId} label="Удалить" />
+                  <RemoveFriendshipButton
+                    friendshipId={friend.friendshipId}
+                    label="Удалить"
+                    confirm
+                  />
                 }
               />
             ))}
@@ -187,6 +191,6 @@ function PersonRow({
 function statusNote(status: SearchResultStatus): string | null {
   if (status === "friends") return "Уже в друзьях";
   if (status === "outgoing") return "Заявка отправлена";
-  if (status === "incoming") return "Ждёт вашего ответа — заявка ниже";
+  if (status === "incoming") return "Ждёт вашего ответа — заявка выше";
   return null;
 }

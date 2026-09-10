@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Logo } from "@/components/ui/logo";
 import type { SessionUser } from "@/lib/auth/session";
+import { cn } from "@/lib/cn";
+import { plural } from "@/lib/plural";
 
 /**
  * Каркас страниц для вошедшего пользователя.
@@ -14,9 +16,12 @@ import type { SessionUser } from "@/lib/auth/session";
  */
 export function AppShell({
   user,
+  pendingRequests,
   children,
 }: {
   user: SessionUser;
+  /** Заявки в друзья, ждущие ответа: счётчик на вкладке «Друзья». */
+  pendingRequests: number;
   children: ReactNode;
 }) {
   return (
@@ -32,9 +37,10 @@ export function AppShell({
               <Link
                 key={tab.href}
                 href={tab.href}
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted"
               >
                 {tab.label}
+                <Badge count={tab.href === "/friends" ? pendingRequests : 0} />
               </Link>
             ))}
           </nav>
@@ -56,7 +62,13 @@ export function AppShell({
               href={tab.href}
               className="flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-semibold text-foreground"
             >
-              <TabIcon name={tab.icon} />
+              <span className="relative">
+                <TabIcon name={tab.icon} />
+                <Badge
+                  count={tab.href === "/friends" ? pendingRequests : 0}
+                  className="absolute -top-1.5 -right-2.5"
+                />
+              </span>
               {tab.label}
             </Link>
           ))}
@@ -71,6 +83,31 @@ const TABS = [
   { href: "/friends", label: "Друзья", icon: "friends" as const },
   { href: "/profile", label: "Профиль", icon: "profile" as const },
 ];
+
+/**
+ * Счётчик непрочитанного на вкладке.
+ *
+ * Оранжевый здесь оправдан: это ровно тот случай, ради которого акцент и
+ * держат — маленькое пятно, требующее действия. Подпись для скринридера своя,
+ * потому что «2» без слова рядом с «Друзья» ничего не объясняет.
+ */
+function Badge({ count, className }: { count: number; className?: string }) {
+  if (count <= 0) return null;
+
+  return (
+    <span
+      className={cn(
+        "inline-flex min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold leading-5 text-accent-foreground",
+        className,
+      )}
+    >
+      <span aria-hidden>{count > 99 ? "99+" : count}</span>
+      <span className="sr-only">
+        {count} {plural(count, "новая заявка", "новые заявки", "новых заявок")}
+      </span>
+    </span>
+  );
+}
 
 function TabIcon({ name }: { name: "trips" | "friends" | "profile" }) {
   const common = {

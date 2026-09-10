@@ -58,6 +58,16 @@ export async function getIncomingRequests(userId: string): Promise<FriendSummary
   }));
 }
 
+/**
+ * Сколько заявок ждёт ответа — для отметки на вкладке «Друзья».
+ *
+ * Отдельный счётчик, а не длина `getIncomingRequests`: он нужен в каркасе на
+ * каждой странице, и тянуть ради одной цифры ники с аватарками незачем.
+ */
+export function countIncomingRequests(userId: string): Promise<number> {
+  return prisma.friendship.count({ where: { addresseeId: userId, status: "PENDING" } });
+}
+
 /** Заявки, отправленные этим пользователем и ещё не принятые. */
 export async function getOutgoingRequests(userId: string): Promise<FriendSummary[]> {
   const requests = await prisma.friendship.findMany({
