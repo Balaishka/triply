@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { DeleteExpenseButton } from "@/components/expenses/delete-expense-button";
 import { ExpenseForm } from "@/components/expenses/expense-form";
+import { BackLink } from "@/components/ui/back-link";
 import { updateExpenseAction } from "@/lib/actions/expenses";
 import { requireUser } from "@/lib/auth/require-user";
 import { toISODate } from "@/lib/dates";
@@ -26,12 +26,7 @@ export default async function EditExpensePage({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <Link
-          href={`/trips/${trip.id}`}
-          className="w-fit text-sm font-semibold text-muted-foreground hover:text-foreground"
-        >
-          ← {trip.name}
-        </Link>
+        <BackLink href={`/trips/${trip.id}`}>{trip.name}</BackLink>
         <h1 className="text-2xl font-extrabold tracking-tight">Расход</h1>
       </div>
 

@@ -1,5 +1,4 @@
-import Link from "next/link";
-
+import { BackLink } from "@/components/ui/back-link";
 import { formatDateRange } from "@/lib/dates";
 import { plural } from "@/lib/plural";
 import type { TripDetail } from "@/lib/queries/trips";
@@ -9,12 +8,7 @@ export function TripHeader({ trip }: { trip: TripDetail }) {
 
   return (
     <div className="flex flex-col gap-1">
-      <Link
-        href="/"
-        className="w-fit text-sm font-semibold text-muted-foreground hover:text-foreground"
-      >
-        ← Все поездки
-      </Link>
+      <BackLink href="/">Все поездки</BackLink>
 
       <div className="flex items-start justify-between gap-3">
         <h1 className="text-2xl font-extrabold tracking-tight">{trip.name}</h1>

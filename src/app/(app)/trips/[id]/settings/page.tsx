@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { DeleteTripButton } from "@/components/trips/delete-trip-button";
 import { MembersManager } from "@/components/trips/members-manager";
 import { TripForm } from "@/components/trips/trip-form";
+import { BackLink } from "@/components/ui/back-link";
 import { updateTripAction } from "@/lib/actions/trips";
 import { requireUser } from "@/lib/auth/require-user";
 import { toISODate } from "@/lib/dates";
@@ -27,12 +28,7 @@ export default async function TripSettingsPage({ params }: PageProps<"/trips/[id
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <Link
-          href={`/trips/${trip.id}`}
-          className="w-fit text-sm font-semibold text-muted-foreground hover:text-foreground"
-        >
-          ← {trip.name}
-        </Link>
+        <BackLink href={`/trips/${trip.id}`}>{trip.name}</BackLink>
         <h1 className="text-2xl font-extrabold tracking-tight">Настройки поездки</h1>
       </div>
 

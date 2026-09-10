@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Money } from "@/components/money";
 import { CompleteTripButton } from "@/components/trips/complete-trip-button";
 import { MarkPaidButton, UndoTransferButton } from "@/components/trips/transfer-actions";
 import { Avatar } from "@/components/ui/avatar";
+import { BackLink } from "@/components/ui/back-link";
 import { requireUser } from "@/lib/auth/require-user";
 import { formatMoney } from "@/lib/money";
 import { buildSummary, getTripDetail } from "@/lib/queries/trips";
@@ -22,12 +22,7 @@ export default async function TripSummaryPage({ params }: PageProps<"/trips/[id]
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <Link
-          href={`/trips/${trip.id}`}
-          className="w-fit text-sm font-semibold text-muted-foreground hover:text-foreground"
-        >
-          ← {trip.name}
-        </Link>
+        <BackLink href={`/trips/${trip.id}`}>{trip.name}</BackLink>
         <h1 className="text-2xl font-extrabold tracking-tight">Итоги поездки</h1>
       </div>
 
