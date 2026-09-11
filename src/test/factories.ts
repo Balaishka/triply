@@ -1,5 +1,7 @@
 import { createSession } from "@/lib/auth/session";
+import { randomToken } from "@/lib/auth/token";
 import { prisma } from "@/lib/db";
+import { INVITE_TOKEN_BYTES } from "@/lib/trips/invite-link";
 
 import { clearCookies } from "./cookies";
 
@@ -107,6 +109,25 @@ export async function createTrip(options: TripOptions): Promise<TestTrip> {
   }
 
   return { id: trip.id, members };
+}
+
+/**
+ * Готовая ссылка-приглашение — возвращается её токен.
+ *
+ * Заводится запросом, а не действием: тест про «пришёл по ссылке» не должен
+ * начинаться с выпуска ссылки и падать вместе с ним.
+ */
+export async function createInvite(tripId: string, createdBy: TestUser): Promise<string> {
+  const invite = await prisma.tripInvite.create({
+    data: {
+      tripId,
+      token: randomToken(INVITE_TOKEN_BYTES),
+      createdById: createdBy.id,
+    },
+    select: { token: true },
+  });
+
+  return invite.token;
 }
 
 export interface ExpenseOptions {

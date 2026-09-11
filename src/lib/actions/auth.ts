@@ -11,6 +11,7 @@ import {
   registerFailedLogin,
 } from "@/lib/auth/login-attempts";
 import { formatRetryAfter } from "@/lib/auth/login-throttle";
+import { safeNextPath } from "@/lib/auth/next-path";
 import { hashPassword, verifyAgainstDecoy, verifyPassword } from "@/lib/auth/password";
 import {
   clearPasswordResets,
@@ -89,7 +90,8 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
   }
 
   await createSession(userId);
-  redirect("/");
+  // Аккаунт чаще всего заводят ради приглашения в поездку: туда и возвращаем.
+  redirect(safeNextPath(formData.get("next")));
 }
 
 export async function loginAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -128,7 +130,7 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
 
   await clearLoginAttempts(email);
   await createSession(user.id);
-  redirect("/");
+  redirect(safeNextPath(formData.get("next")));
 }
 
 export async function logoutAction(): Promise<void> {

@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
+import type { ComponentProps, ReactNode, SelectHTMLAttributes } from "react";
 
 import { cn } from "@/lib/cn";
 
@@ -11,7 +11,9 @@ export const CONTROL = cn(
   "disabled:cursor-not-allowed disabled:opacity-60",
 );
 
-export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+// Пропсы вместе с `ref`: поле со ссылкой-приглашением выделяет себя само, если
+// браузер не дал скопировать её в буфер.
+export function Input({ className, ...props }: ComponentProps<"input">) {
   return <input className={cn(CONTROL, className)} {...props} />;
 }
 

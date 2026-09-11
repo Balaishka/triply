@@ -23,6 +23,7 @@ model User {
   sentRequests      Friendship[] @relation("FriendshipRequester")
   receivedRequests  Friendship[] @relation("FriendshipAddressee")
   createdTrips      Trip[]       @relation("TripCreator")
+  createdInvites    TripInvite[] @relation("TripInviteCreator")
   memberships       TripMember[] @relation("MemberUser")
   addedMembers      TripMember[] @relation("MemberAddedBy")
   createdExpenses   Expense[]    @relation("ExpenseCreator")
@@ -131,6 +132,7 @@ model Trip {
   members     TripMember[]
   expenses    Expense[]
   settlements Settlement[]
+  invite      TripInvite?
 }
 
 /// Участник поездки: либо зарегистрированный пользователь (`userId`), либо гость
@@ -158,6 +160,29 @@ model TripMember {
 
   @@unique([tripId, userId])
   @@index([tripId])
+}
+
+/// Приглашение в поездку ссылкой.
+///
+/// Одно на поездку: ссылку кидают в общий чат, и по ней приходит сколько угодно
+/// человек. Отозвать — значит удалить строку; новая заводится с новым токеном, и
+/// старая ссылка перестаёт работать. Отдельного срока жизни нет: ссылка живёт,
+/// пока поездка активна, — в завершённую приходить незачем, она закрыта на
+/// запись.
+///
+/// Токен здесь, в отличие от ссылок из писем, лежит открытым, и это осознанное
+/// исключение из правила «секрет — только хешем». Ссылку нужно уметь показать
+/// ещё раз: «кинь ссылку заново» случается куда чаще, чем утечка дампа. Цена
+/// исключения мала — ссылка открывает ровно одну поездку, данные которой в том
+/// же дампе и лежат, и входа в аккаунт не даёт.
+model TripInvite {
+  id          String   @id @default(cuid())
+  tripId      String   @unique
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  token       String   @unique
+  createdById String
+  createdBy   User     @relation("TripInviteCreator", fields: [createdById], references: [id], onDelete: NoAction)
+  createdAt   DateTime @default(now())
 }
 
 enum SplitMode {

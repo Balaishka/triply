@@ -70,7 +70,7 @@ const memberSelect = {
 } as const;
 
 /** Имя участника: ник аккаунта либо имя гостя. */
-function memberName(member: {
+export function memberName(member: {
   guestName: string | null;
   user: { nickname: string } | null;
 }): string {

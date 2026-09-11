@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { DeleteTripButton } from "@/components/trips/delete-trip-button";
+import { InviteLinkCard } from "@/components/trips/invite-link-card";
 import { MembersManager } from "@/components/trips/members-manager";
 import { TripForm } from "@/components/trips/trip-form";
 import { BackLink } from "@/components/ui/back-link";
@@ -9,6 +10,7 @@ import { updateTripAction } from "@/lib/actions/trips";
 import { requireUser } from "@/lib/auth/require-user";
 import { toISODate } from "@/lib/dates";
 import { getFriends } from "@/lib/queries/friends";
+import { getTripInviteUrl } from "@/lib/queries/invites";
 import { getTripDetail } from "@/lib/queries/trips";
 
 export default async function TripSettingsPage({ params }: PageProps<"/trips/[id]/settings">) {
@@ -17,7 +19,7 @@ export default async function TripSettingsPage({ params }: PageProps<"/trips/[id
   const trip = await getTripDetail(id, user.id);
   if (!trip) notFound();
 
-  const friends = await getFriends(user.id);
+  const [friends, inviteUrl] = await Promise.all([getFriends(user.id), getTripInviteUrl(trip.id)]);
   const memberUserIds = new Set(
     trip.members.map((member) => member.userId).filter((userId): userId is string => userId !== null),
   );
@@ -65,6 +67,8 @@ export default async function TripSettingsPage({ params }: PageProps<"/trips/[id
         availableFriends={availableFriends}
         canEdit={canEdit}
       />
+
+      <InviteLinkCard tripId={trip.id} url={inviteUrl} tripActive={canEdit} />
 
       {trip.isCreator && <DeleteTripButton tripId={trip.id} tripName={trip.name} />}
     </div>

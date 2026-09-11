@@ -12,14 +12,27 @@ import {
   requestPasswordResetAction,
   resetPasswordAction,
 } from "@/lib/actions/auth";
+import { DEFAULT_AFTER_LOGIN } from "@/lib/auth/next-path";
 
-export function LoginForm({ notice }: { notice?: string }) {
+/** Переброс адреса возврата на соседнюю форму: со входа на регистрацию и обратно. */
+function withNext(path: string, next: string): string {
+  return next === DEFAULT_AFTER_LOGIN ? path : `${path}?next=${encodeURIComponent(next)}`;
+}
+
+/**
+ * Вход и регистрация умеют возвращать человека туда, откуда его увели: по
+ * ссылке-приглашению приходят без сессии, и поездка не должна теряться по
+ * дороге. Куда именно — решает `safeNextPath` на сервере, здесь адрес только
+ * едет следом.
+ */
+export function LoginForm({ notice, next = DEFAULT_AFTER_LOGIN }: { notice?: string; next?: string }) {
   const [state, action, pending] = useActionState(loginAction, null);
 
   return (
     <form action={action} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5">
       <FormError>{state?.error}</FormError>
       <FormSuccess>{notice}</FormSuccess>
+      <input type="hidden" name="next" value={next} />
 
       <Field label="Почта" htmlFor="email" error={state?.fieldErrors?.email}>
         <Input id="email" name="email" type="email" autoComplete="email" required />
@@ -42,7 +55,7 @@ export function LoginForm({ notice }: { notice?: string }) {
 
       <p className="text-center text-sm text-muted-foreground">
         Ещё нет аккаунта?{" "}
-        <Link href="/register" className="font-semibold text-primary underline underline-offset-2">
+        <Link href={withNext("/register", next)} className="font-semibold text-primary underline underline-offset-2">
           Зарегистрироваться
         </Link>
       </p>
@@ -50,12 +63,13 @@ export function LoginForm({ notice }: { notice?: string }) {
   );
 }
 
-export function RegisterForm() {
+export function RegisterForm({ next = DEFAULT_AFTER_LOGIN }: { next?: string }) {
   const [state, action, pending] = useActionState(registerAction, null);
 
   return (
     <form action={action} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5">
       <FormError>{state?.error}</FormError>
+      <input type="hidden" name="next" value={next} />
 
       <Field label="Никнейм" htmlFor="nickname" error={state?.fieldErrors?.nickname}
         hint="По нему вас найдут друзья">
@@ -76,7 +90,7 @@ export function RegisterForm() {
 
       <p className="text-center text-sm text-muted-foreground">
         Уже есть аккаунт?{" "}
-        <Link href="/login" className="font-semibold text-primary underline underline-offset-2">
+        <Link href={withNext("/login", next)} className="font-semibold text-primary underline underline-offset-2">
           Войти
         </Link>
       </p>
