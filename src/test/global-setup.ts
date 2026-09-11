@@ -32,9 +32,11 @@ export default async function setup(): Promise<void> {
 
   // Миграции гоняем прямо файлом CLI: так не нужен ни npx, ни его .cmd-обёртка
   // под Windows. Адрес передаём переменной окружения — в prisma.config.ts
-  // .env грузится так, что внешнее значение остаётся сильнее.
+  // .env грузится так, что внешнее значение остаётся сильнее. DIRECT_DATABASE_URL
+  // переставляем туда же: он сильнее DATABASE_URL, и заданный ради выката
+  // увёл бы миграции тестов в боевую базу.
   execFileSync(process.execPath, ["node_modules/prisma/build/index.js", "migrate", "deploy"], {
-    env: { ...process.env, DATABASE_URL: url },
+    env: { ...process.env, DATABASE_URL: url, DIRECT_DATABASE_URL: url },
     stdio: ["ignore", "ignore", "inherit"],
   });
 }

@@ -18,5 +18,11 @@ try {
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: { path: "prisma/migrations" },
-  datasource: { url: env("DATABASE_URL") },
+  // Миграции ходят мимо пулера. PgBouncer в режиме транзакций раздаёт
+  // соединение на каждую транзакцию, а миграции держат advisory-блокировку на
+  // всё время работы и меняют схему — им нужно одно и то же соединение от
+  // начала до конца. Провайдеры дают для этого отдельный прямой адрес, и тогда
+  // он задаётся в DIRECT_DATABASE_URL. На нашем тарифе Timeweb пулера нет, как
+  // нет его и локально, — тогда годится обычный DATABASE_URL.
+  datasource: { url: process.env.DIRECT_DATABASE_URL?.trim() || env("DATABASE_URL") },
 });

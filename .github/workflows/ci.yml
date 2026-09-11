@@ -1,0 +1,57 @@
+name: CI
+
+# Проверки идут на каждый push в main и на каждый pull request. Выката здесь
+# нет: на Vercel он свой, по push, — эти два процесса независимы, и красный CI
+# выкат не остановит. Смысл проверок в том, чтобы поломка была видна до того,
+# как её заметят на сайте.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    # Тесты на права работают с настоящим Postgres — подменять клиент базы
+    # нечем, потому что проверка «чужую поездку не тронуть» и есть запрос.
+    # Поэтому база здесь такая же обязательная часть прогона, как node.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: triply
+          POSTGRES_PASSWORD: triply
+          POSTGRES_DB: triply
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U triply -d triply"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Соседнюю triply_test обвязка заведёт и мигрирует сама — ей хватает
+      # адреса сервера. Внутри контейнера раннера база видна на localhost.
+      DATABASE_URL: postgresql://triply:triply@localhost:5432/triply
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Клиент Prisma генерируется в node_modules, а `npm ci` его не собирает:
+      # без этого шага не пройдёт ни tsc, ни тесты.
+      - run: npx prisma generate
+
+      - run: npm run lint
+
+      - run: npm run typecheck
+
+      - run: npm test
